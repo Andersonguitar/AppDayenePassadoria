@@ -25,8 +25,9 @@
         <p class="mt-4 text-indigo-900 font-semibold" id="loader-text">A processar...</p>
     </div>
 
+    <!-- Modal de Confirmação -->
     <div id="confirm-modal" class="modal-overlay">
-        <div class="card w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div class="card w-full max-w-md mx-4 overflow-hidden">
             <div class="p-6">
                 <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-2xl mb-4">❓</div>
                 <h3 class="text-xl font-bold text-slate-900" id="modal-title">Confirmar Ação</h3>
@@ -39,6 +40,54 @@
         </div>
     </div>
 
+    <!-- Modal de Edição de Pedido -->
+    <div id="edit-order-modal" class="modal-overlay">
+        <div class="card w-full max-w-md mx-4 overflow-hidden">
+            <div class="p-6">
+                <h3 class="text-xl font-bold text-slate-900 mb-4">Editar Pedido</h3>
+                <input type="hidden" id="edit-order-id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tempo (HH:MM)</label>
+                        <input type="text" id="edit-order-hours" class="w-full font-bold" placeholder="01:30">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cabides</label>
+                        <input type="number" id="edit-order-cabides" class="w-full">
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 flex gap-3 justify-end">
+                <button onclick="closeEditModal()" class="px-4 py-2 text-slate-600 font-semibold hover:bg-slate-200 rounded-xl">Cancelar</button>
+                <button onclick="saveEditOrder()" class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOVO: Modal de Edição de Cliente -->
+    <div id="edit-client-modal" class="modal-overlay">
+        <div class="card w-full max-w-md mx-4 overflow-hidden">
+            <div class="p-6">
+                <h3 class="text-xl font-bold text-slate-900 mb-4">Editar Cliente</h3>
+                <input type="hidden" id="edit-cli-id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome Completo</label>
+                        <input type="text" id="edit-cli-nome" class="w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Telefone / WhatsApp</label>
+                        <input type="text" id="edit-cli-contato" class="w-full">
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 flex gap-3 justify-end">
+                <button onclick="closeEditClientModal()" class="px-4 py-2 text-slate-600 font-semibold hover:bg-slate-200 rounded-xl">Cancelar</button>
+                <button onclick="saveEditClient()" class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700">Atualizar Cadastro</button>
+            </div>
+        </div>
+    </div>
+
     <div class="max-w-4xl mx-auto px-4 py-8">
         <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
@@ -46,7 +95,7 @@
                 <p class="text-slate-500 font-medium">Gestão de Produção e Saldos</p>
                 <div id="status-conexao" class="text-[10px] mt-1 font-bold uppercase tracking-widest text-amber-500 italic">A verificar ligação...</div>
             </div>
-            <button onclick="loadAllData()" class="flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-600 px-5 py-2.5 rounded-xl hover:bg-slate-50 transition-all font-semibold shadow-sm">
+            <button onclick="loadAllData()" class="hidden items-center justify-center gap-2 bg-white border border-slate-200 text-slate-600 px-5 py-2.5 rounded-xl hover:bg-slate-50 transition-all font-semibold shadow-sm">
                 <span>🔄</span> Sincronizar Drive
             </button>
         </header>
@@ -86,11 +135,11 @@
                     <div class="flex flex-col md:flex-row justify-between items-end gap-6 pt-6 border-t border-slate-100">
                         <div class="flex-1 space-y-2 w-full md:w-auto">
                             <label class="block text-xs font-bold text-slate-500 uppercase">Cabides Entregues</label>
-                            <input type="number" id="order-cabides" placeholder="Qtd de cabides" class="w-full bg-slate-50 border-slate-200 focus:border-indigo-500 mb-4 md:mb-0">
+                            <input type="number" id="order-cabides" placeholder="Qtd de cabides" class="w-full bg-slate-50 border-slate-200 focus:border-indigo-500">
                         </div>
                         <div class="flex-1 space-y-2 w-full md:w-auto">
-                            <label class="block text-xs font-bold text-slate-500 uppercase">Tempo Total Gasto (Horas)</label>
-                            <input type="number" step="0.01" id="order-total-manual" placeholder="Ex: 1.50" class="w-full text-2xl font-black bg-indigo-50 border-indigo-100 text-indigo-900 focus:border-indigo-500">
+                            <label class="block text-xs font-bold text-slate-500 uppercase">Tempo (HH:MM)</label>
+                            <input type="text" id="order-total-manual" placeholder="Ex: 01:30" class="w-full text-2xl font-black bg-indigo-50 border-indigo-100 text-indigo-900 focus:border-indigo-500">
                         </div>
                         <button onclick="finalizeOrder()" class="w-full md:w-auto bg-emerald-600 text-white px-12 py-4 rounded-2xl font-black text-lg hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100">
                             FINALIZAR E SALVAR
@@ -113,17 +162,19 @@
                     </form>
                 </div>
                 <div class="card overflow-hidden">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-50 border-b border-slate-100">
-                            <tr>
-                                <th class="p-4 font-bold text-slate-600">Nome</th>
-                                <th class="p-4 font-bold text-slate-600">Regime</th>
-                                <th class="p-4 font-bold text-slate-600 text-center">Saldo</th>
-                                <th class="p-4 font-bold text-slate-600 text-right">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-clientes-body" class="divide-y divide-slate-50"></tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 border-b border-slate-100">
+                                <tr>
+                                    <th class="p-4 font-bold text-slate-600">Nome / Contato</th>
+                                    <th class="p-4 font-bold text-slate-600">Regime</th>
+                                    <th class="p-4 font-bold text-slate-600 text-center">Saldo</th>
+                                    <th class="p-4 font-bold text-slate-600 text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-clientes-body" class="divide-y divide-slate-50"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -146,9 +197,22 @@
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwtCDkM9WxC0brWNttikH3yKiHMz_qY5JSu02eyp18SQB2KXLFdX_8kGEOeyCcRGwVk/exec";
-        const isGoogleEnv = typeof google !== 'undefined' && google.script && google.script.run;
+        const isGoogleEnv = (typeof google !== 'undefined' && google.script && google.script.run);
+        
         let db = { clientes: [], pecas: [], pedidos: [] };
         let currentOrderItems = [];
+
+        function timeToDecimal(timeStr) {
+            if (!timeStr || !timeStr.includes(':')) return 0;
+            const parts = timeStr.split(':');
+            return parseFloat((parseInt(parts[0] || 0) + (parseInt(parts[1] || 0) / 60)).toFixed(2));
+        }
+
+        function decimalToTime(decimal) {
+            const h = Math.floor(decimal);
+            const m = Math.round((decimal - h) * 60);
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        }
 
         function showLoader(show, text = "A processar...") {
             const loader = document.getElementById('loader');
@@ -157,25 +221,13 @@
             if(loader) loader.style.display = show ? 'flex' : 'none';
         }
 
-        // Função para exibir modal de confirmação
         function showConfirm(title, msg, onConfirm) {
             const modal = document.getElementById('confirm-modal');
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-msg').innerText = msg;
-            
-            const btnConfirm = document.getElementById('modal-confirm');
-            const btnCancel = document.getElementById('modal-cancel');
-            
             modal.style.display = 'flex';
-            
-            const cleanup = () => {
-                modal.style.display = 'none';
-                btnConfirm.onclick = null;
-                btnCancel.onclick = null;
-            };
-            
-            btnConfirm.onclick = () => { onConfirm(); cleanup(); };
-            btnCancel.onclick = cleanup;
+            document.getElementById('modal-confirm').onclick = () => { onConfirm(); modal.style.display = 'none'; };
+            document.getElementById('modal-cancel').onclick = () => { modal.style.display = 'none'; };
         }
 
         async function runCommand(commandName, ...args) {
@@ -188,11 +240,14 @@
             } else {
                 const url = `${WEB_APP_URL}?action=${commandName}&data=${encodeURIComponent(JSON.stringify(args))}`;
                 try {
-                    const response = await fetch(url);
+                    const response = await fetch(url, { method: 'GET', mode: 'cors', redirect: 'follow' });
+                    if (!response.ok) throw new Error("Erro na rede: " + response.statusText);
                     const json = await response.json();
                     if (json.status === 'error') throw new Error(json.message);
                     return json.data;
-                } catch (e) { throw e; }
+                } catch (e) {
+                    throw new Error("Erro de ligação ao Drive.");
+                }
             }
         }
 
@@ -202,14 +257,61 @@
                 const data = await runCommand('getData');
                 if (data) {
                     db = data;
-                    document.getElementById('status-conexao').innerText = "Ligado ao Drive";
-                    document.getElementById('status-conexao').className = "text-[10px] mt-1 font-bold uppercase tracking-widest text-emerald-500";
                     renderAll();
+                    document.getElementById('status-conexao').innerText = "Online";
+                    document.getElementById('status-conexao').className = "text-[10px] mt-1 font-bold uppercase tracking-widest text-emerald-500";
                 }
-            } catch (e) { 
-                document.getElementById('status-conexao').innerText = "Erro de Ligação";
+            } catch (e) {
+                document.getElementById('status-conexao').innerText = "Offline";
                 document.getElementById('status-conexao').className = "text-[10px] mt-1 font-bold uppercase tracking-widest text-red-500";
-            } finally { showLoader(false); }
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        function renderAll() {
+            const clientOptions = '<option value="">Escolha um cliente...</option>' + 
+                db.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            document.getElementById('order-client').innerHTML = clientOptions;
+            
+            document.getElementById('order-item-select').innerHTML = '<option value="">Peça...</option>' + 
+                db.pecas.map(p => `<option value="${p.id}">${p.nome || p.nomedapeça}</option>`).join('');
+
+            // Tabela de Clientes
+            document.getElementById('table-clientes-body').innerHTML = db.clientes.map(c => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-4">
+                        <div class="font-bold text-slate-800">${c.nome}</div>
+                        <div class="text-[10px] text-slate-400 font-medium tracking-wider">${c.contato || 'N/A'}</div>
+                    </td>
+                    <td class="p-4 text-xs font-bold uppercase text-indigo-500">${c.tipo}</td>
+                    <td class="p-4 text-center font-black">${c.tipo === 'pacote' ? decimalToTime(parseFloat(c.saldohoras) || 0) + 'h' : '－'}</td>
+                    <td class="p-4 text-right flex justify-end gap-2">
+                        <button onclick="openEditClientModal('${c.id}')" class="p-2 hover:bg-slate-100 rounded-lg" title="Editar Cadastro">✏️</button>
+                        ${c.tipo === 'pacote' ? 
+                            `<button onclick="confirmRecharge('${c.id}')" class="text-[10px] bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg font-bold border border-emerald-100 hover:bg-emerald-100">Recarregar 10h</button>` : 
+                            `<button onclick="confirmUpgrade('${c.id}')" class="text-[10px] bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-bold border border-indigo-100 hover:bg-indigo-100">Tornar Pacote</button>`
+                        }
+                    </td>
+                </tr>`).join('');
+
+            document.getElementById('pecas-grid').innerHTML = db.pecas.map(p => `<div class="bg-white p-4 rounded-2xl border border-slate-100 text-center shadow-sm"><p class="font-bold text-slate-800 text-sm truncate">${p.nome || p.nomedapeça}</p></div>`).join('');
+            
+            document.getElementById('history-container').innerHTML = db.pedidos.slice().reverse().map(p => `
+                <div class="bg-white p-5 rounded-2xl border-l-4 ${p.status === 'aberto' ? 'border-amber-400' : 'border-emerald-400'} shadow-sm">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-bold text-slate-900"><span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded mr-2 text-xs font-bold">👔 ${p.cabides || 0}</span>${p.clientenome}</p>
+                            <p class="text-[10px] text-slate-400">${p.data ? new Date(p.data).toLocaleString() : ''}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                             <button onclick="toggleStatus('${p.id}', '${p.status}')" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase ${p.status === 'aberto' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}">${p.status}</button>
+                             <button onclick="openEditModal('${p.id}')" class="p-1.5 hover:bg-slate-100 rounded-lg" title="Editar">✏️</button>
+                             <button onclick="confirmDeleteOrder('${p.id}')" class="p-1.5 hover:bg-red-50 text-red-500 rounded-lg" title="Excluir">🗑️</button>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-xl font-black text-indigo-900">${decimalToTime(parseFloat(p.totalhoras) || 0)}h</p>
+                </div>`).join('');
         }
 
         function switchTab(tab) {
@@ -221,137 +323,70 @@
             document.getElementById(`tab-${tab}`).classList.add('tab-active');
         }
 
-        function renderAll() {
-            const clientOptions = '<option value="">Escolha um cliente...</option>' + 
-                db.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-            
-            document.getElementById('order-client').innerHTML = clientOptions;
-            document.getElementById('order-item-select').innerHTML = '<option value="">Peça...</option>' + 
-                db.pecas.map(p => `<option value="${p.id}">${p.nome || p.nomedapeça}</option>`).join('');
-
-            document.getElementById('table-clientes-body').innerHTML = db.clientes.map(c => `
-                <tr class="hover:bg-slate-50">
-                    <td class="p-4 font-bold text-slate-800">${c.nome}</td>
-                    <td class="p-4 text-xs font-bold uppercase text-indigo-500">${c.tipo}</td>
-                    <td class="p-4 text-center font-black">${c.tipo === 'pacote' ? (parseFloat(c.saldohoras) || 0).toFixed(2) + 'h' : '－'}</td>
-                    <td class="p-4 text-right space-x-1">
-                        <button onclick="confirmUpdateRegime('${c.id}')" class="text-[10px] bg-slate-100 px-2 py-1 rounded font-bold hover:bg-indigo-100 hover:text-indigo-600 transition-colors" title="Alternar Regime">Trocar</button>
-                        ${c.tipo === 'pacote' ? `<button onclick="confirmRecharge('${c.id}')" class="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-1 rounded font-bold hover:bg-emerald-100 transition-colors">Recarregar 10h</button>` : ''}
-                    </td>
-                </tr>`).join('');
-
-            document.getElementById('pecas-grid').innerHTML = db.pecas.map(p => `<div class="bg-white p-4 rounded-2xl border border-slate-100 text-center shadow-sm"><p class="font-bold text-slate-800 text-sm truncate">${p.nome || p.nomedapeça}</p></div>`).join('');
-            
-            document.getElementById('history-container').innerHTML = db.pedidos.slice().reverse().map(p => {
-                const cabides = p.cabides || 0;
-                return `
-                <div class="bg-white p-5 rounded-2xl border-l-4 ${p.status === 'aberto' ? 'border-amber-400' : 'border-emerald-400'} shadow-sm">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="font-bold text-slate-900">
-                                <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded mr-2 text-xs font-bold">👔 ${cabides}</span>
-                                ${p.clientenome}
-                            </p>
-                            <p class="text-[10px] text-slate-400">${new Date(p.data).toLocaleString()}</p>
-                        </div>
-                        <button onclick="toggleStatus('${p.id}', '${p.status}')" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase ${p.status === 'aberto' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}">${p.status}</button>
-                    </div>
-                    <p class="mt-4 text-xl font-black text-indigo-900">${(parseFloat(p.totalhoras) || 0).toFixed(2)}h</p>
-                </div>`;
-            }).join('');
-        }
-
-        // Nova função com confirmação para Trocar Regime
-        function confirmUpdateRegime(id) {
+        function openEditClientModal(id) {
             const c = db.clientes.find(x => String(x.id) === String(id));
             if (!c) return;
-            const novoTipo = c.tipo === 'avulso' ? 'Pacote' : 'Avulso';
-            
-            showConfirm(
-                "Mudar Regime?", 
-                `Tem certeza que deseja mudar ${c.nome} para regime ${novoTipo}?`, 
-                async () => {
-                    const tipoFinal = novoTipo.toLowerCase();
-                    const novoSaldo = tipoFinal === 'pacote' ? 10 : 0;
-                    const clientUpdate = { ...c, tipo: tipoFinal, saldohoras: novoSaldo };
-                    
-                    showLoader(true, "A atualizar regime...");
-                    try {
-                        await runCommand('salvarCliente', clientUpdate);
-                        await loadAllData();
-                    } catch (e) { alert("Erro ao atualizar."); } finally { showLoader(false); }
-                }
-            );
+            document.getElementById('edit-cli-id').value = id;
+            document.getElementById('edit-cli-nome').value = c.nome;
+            document.getElementById('edit-cli-contato').value = c.contato || '';
+            document.getElementById('edit-client-modal').style.display = 'flex';
         }
 
-        // Nova função com confirmação e lógica de soma para Recarga
-        function confirmRecharge(id) {
-            const c = db.clientes.find(x => String(x.id) === String(id));
-            if (!c) return;
-            
-            const saldoAtual = parseFloat(c.saldohoras) || 0;
-            const novoSaldo = saldoAtual + 10;
-            
-            showConfirm(
-                "Confirmar Recarga", 
-                `Deseja adicionar 10h ao saldo de ${c.nome}? O saldo passará de ${saldoAtual.toFixed(2)}h para ${novoSaldo.toFixed(2)}h.`, 
-                async () => {
-                    const clientUpdate = { ...c, saldohoras: novoSaldo };
-                    showLoader(true, "A recarregar 10h...");
-                    try {
-                        await runCommand('salvarCliente', clientUpdate);
-                        await loadAllData();
-                    } catch (e) { alert("Erro ao recarregar."); } finally { showLoader(false); }
-                }
-            );
-        }
+        function closeEditClientModal() { document.getElementById('edit-client-modal').style.display = 'none'; }
 
-        async function handleFormCliente(event) {
-            event.preventDefault();
-            const nome = document.getElementById('cli-nome').value;
-            const contato = document.getElementById('cli-contato').value;
-            const tipo = document.getElementById('cli-tipo').value;
+        async function saveEditClient() {
+            const id = document.getElementById('edit-cli-id').value;
+            const clienteOriginal = db.clientes.find(x => String(x.id) === String(id));
+            const novoNome = document.getElementById('edit-cli-nome').value;
+            const novoContato = document.getElementById('edit-cli-contato').value;
             
-            const novoCliente = {
-                id: Date.now().toString(),
-                nome: nome,
-                contato: contato,
-                email: "",
-                tipo: tipo,
-                saldohoras: tipo === 'pacote' ? 10 : 0
-            };
-
-            showLoader(true, "A salvar cliente...");
+            if(!novoNome) { alert("Nome é obrigatório."); return; }
+            
+            showLoader(true, "A atualizar dados...");
             try {
-                await runCommand('salvarCliente', novoCliente);
-                document.getElementById('form-cliente').reset();
+                await runCommand('salvarCliente', { ...clienteOriginal, nome: novoNome, contato: novoContato });
+                closeEditClientModal();
                 await loadAllData();
-            } catch (e) {
-                alert("Erro ao salvar cliente.");
-            } finally {
-                showLoader(false);
-            }
+            } catch (e) { alert(e.message); } finally { showLoader(false); }
         }
 
-        async function handleFormPeca(event) {
-            event.preventDefault();
-            const nome = document.getElementById('peca-nome').value;
-            const novaPeca = {
-                id: Date.now().toString(),
-                nome: nome,
-                tempo: 0
-            };
+        function confirmUpgrade(clienteId) {
+            const cliente = db.clientes.find(c => String(c.id) === String(clienteId));
+            if(!cliente) return;
+            showConfirm("Mudar para Pacote?", `Alterar ${cliente.nome} para regime de Pacote com saldo inicial de 10h?`, async () => {
+                showLoader(true, "A atualizar regime...");
+                try {
+                    const clienteAtualizado = { ...cliente, tipo: 'pacote', saldohoras: 10 };
+                    await runCommand('salvarCliente', clienteAtualizado);
+                    await loadAllData();
+                } catch (e) { alert("Erro: " + e.message); } finally { showLoader(false); }
+            });
+        }
 
-            showLoader(true, "A adicionar peça...");
-            try {
-                await runCommand('salvarPeca', novaPeca);
-                document.getElementById('form-peca').reset();
-                await loadAllData();
-            } catch (e) {
-                alert("Erro ao salvar peça.");
-            } finally {
-                showLoader(false);
-            }
+        function confirmRecharge(clienteId) {
+            const cliente = db.clientes.find(c => String(c.id) === String(clienteId));
+            if(!cliente) return;
+            showConfirm("Recarregar Saldo?", `Adicionar 10h a ${cliente.nome}?`, async () => {
+                showLoader(true, "A recarregar...");
+                try {
+                    const novoSaldo = (parseFloat(cliente.saldohoras) || 0) + 10;
+                    const clienteAtualizado = { ...cliente, saldohoras: novoSaldo };
+                    await runCommand('salvarCliente', clienteAtualizado);
+                    await loadAllData();
+                } catch (e) { alert("Erro: " + e.message); } finally { showLoader(false); }
+            });
+        }
+
+        function confirmDeleteOrder(orderId) {
+            const pedido = db.pedidos.find(p => String(p.id) === String(orderId));
+            if(!pedido) return;
+            showConfirm("Excluir Pedido?", `Tem certeza que deseja excluir permanentemente o pedido de ${pedido.clientenome}?`, async () => {
+                showLoader(true, "A excluir pedido...");
+                try {
+                    await runCommand('excluirPedido', orderId);
+                    await loadAllData();
+                } catch (e) { alert("Erro: " + e.message); } finally { showLoader(false); }
+            });
         }
 
         function updateClientInfo() {
@@ -359,13 +394,9 @@
             const box = document.getElementById('client-info-box');
             if (!id) { box.innerHTML = `<span class="text-xs text-slate-400 italic">Selecionar cliente</span>`; return; }
             const c = db.clientes.find(x => String(x.id) === String(id));
-            if (!c) return;
             if (c.tipo === 'pacote') {
-                const s = parseFloat(c.saldohoras) || 0;
-                box.innerHTML = `<div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase">Saldo</span><span class="text-xl font-black ${s >= 0 ? 'text-emerald-600' : 'text-red-600'}">${s.toFixed(2)}h</span></div>`;
-            } else {
-                box.innerHTML = `<span class="text-indigo-600 font-bold text-center text-sm">Regime Avulso</span>`;
-            }
+                box.innerHTML = `<div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase">Saldo</span><span class="text-xl font-black ${c.saldohoras >= 0 ? 'text-emerald-600' : 'text-red-600'}">${decimalToTime(parseFloat(c.saldohoras))}h</span></div>`;
+            } else { box.innerHTML = `<span class="text-indigo-600 font-bold text-center text-sm">Regime Avulso</span>`; }
         }
 
         function addItemToOrder() {
@@ -393,7 +424,6 @@
 
         function changeQtd(id, delta) {
             const item = currentOrderItems.find(i => String(i.id) === String(id));
-            if(!item) return;
             item.qtd += delta;
             if (item.qtd <= 0) currentOrderItems = currentOrderItems.filter(i => String(i.id) !== String(id));
             renderOrderItems();
@@ -401,42 +431,74 @@
 
         async function finalizeOrder() {
             const clientId = document.getElementById('order-client').value;
-            const totalManual = document.getElementById('order-total-manual').value;
-            const cabides = document.getElementById('order-cabides').value || 0;
-            
-            if (!clientId || currentOrderItems.length === 0 || !totalManual) { alert("Dados incompletos."); return; }
+            const timeStr = document.getElementById('order-total-manual').value;
+            if (!clientId || !timeStr) { alert("Por favor, preencha o cliente e o tempo."); return; }
             const cli = db.clientes.find(x => String(x.id) === String(clientId));
-            
             const pedido = { 
-                id: Date.now().toString(), 
-                data: new Date().toISOString(), 
-                clienteid: cli.id, 
-                clientenome: cli.nome, 
-                items: JSON.stringify(currentOrderItems), 
-                totalhoras: parseFloat(totalManual), 
-                status: 'aberto',
-                cabides: parseInt(cabides)
+                id: Date.now().toString(), data: new Date().toISOString(), clienteid: cli.id, clientenome: cli.nome, 
+                items: JSON.stringify(currentOrderItems), totalhoras: timeToDecimal(timeStr), status: 'aberto', 
+                cabides: parseInt(document.getElementById('order-cabides').value || 0)
             };
-            
             showLoader(true, "A salvar pedido...");
-            try {
-                await runCommand('registrarPedido', pedido);
-                currentOrderItems = [];
-                document.getElementById('order-total-manual').value = '';
-                document.getElementById('order-cabides').value = '';
-                renderOrderItems();
-                await loadAllData();
-                switchTab('status');
-            } catch(e) { alert("Erro ao salvar."); } finally { showLoader(false); }
+            try { 
+                await runCommand('registrarPedido', pedido); 
+                currentOrderItems = []; 
+                document.getElementById('order-total-manual').value = ''; 
+                document.getElementById('order-cabides').value = ''; 
+                renderOrderItems(); 
+                await loadAllData(); 
+                switchTab('status'); 
+            } catch(e) { alert("Erro ao salvar: " + e.message); } finally { showLoader(false); }
         }
 
         async function toggleStatus(id, current) {
             const next = current === 'aberto' ? 'fechado' : 'aberto';
             showLoader(true, "A atualizar...");
-            try {
-                await runCommand('atualizarStatusPedido', id, next);
-                await loadAllData();
-            } finally { showLoader(false); }
+            try { await runCommand('atualizarStatusPedido', id, next); await loadAllData(); } catch(e) { alert(e.message); } finally { showLoader(false); }
+        }
+
+        async function handleFormCliente(e) {
+            e.preventDefault();
+            const novo = { 
+                id: Date.now().toString(), 
+                nome: document.getElementById('cli-nome').value, 
+                contato: document.getElementById('cli-contato').value, 
+                tipo: document.getElementById('cli-tipo').value, 
+                saldohoras: document.getElementById('cli-tipo').value === 'pacote' ? 10 : 0 
+            };
+            showLoader(true, "A guardar cliente...");
+            try { await runCommand('salvarCliente', novo); e.target.reset(); await loadAllData(); } catch(e) { alert(e.message); } finally { showLoader(false); }
+        }
+
+        async function handleFormPeca(e) {
+            e.preventDefault();
+            const nova = { id: Date.now().toString(), nome: document.getElementById('peca-nome').value };
+            showLoader(true, "A adicionar peça...");
+            try { await runCommand('salvarPeca', nova); e.target.reset(); await loadAllData(); } catch(e) { alert(e.message); } finally { showLoader(false); }
+        }
+
+        function openEditModal(id) {
+            const p = db.pedidos.find(x => String(x.id) === String(id));
+            if (!p) return;
+            document.getElementById('edit-order-id').value = id;
+            document.getElementById('edit-order-hours').value = decimalToTime(p.totalhoras);
+            document.getElementById('edit-order-cabides').value = p.cabides || 0;
+            document.getElementById('edit-order-modal').style.display = 'flex';
+        }
+
+        function closeEditModal() { document.getElementById('edit-order-modal').style.display = 'none'; }
+
+        async function saveEditOrder() {
+            const id = document.getElementById('edit-order-id').value;
+            const pOrig = db.pedidos.find(x => String(x.id) === String(id));
+            const nH = timeToDecimal(document.getElementById('edit-order-hours').value);
+            const nC = parseInt(document.getElementById('edit-order-cabides').value);
+            showLoader(true, "A atualizar...");
+            try { 
+                await runCommand('registrarPedido', { ...pOrig, totalhoras: nH, cabides: nC }); 
+                closeEditModal(); 
+                await loadAllData(); 
+            } catch(e) { alert(e.message); } finally { showLoader(false); }
         }
 
         window.onload = loadAllData;
