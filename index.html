@@ -193,6 +193,20 @@
             </section>
 
             <section id="sec-status" class="hidden space-y-4">
+                <!-- Filtro de Histórico -->
+                <div class="card p-4">
+                    <div class="flex flex-col md:flex-row gap-3">
+                        <div class="relative flex-1">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">🔍</span>
+                            <input type="text" id="filter-history" oninput="renderAll()" placeholder="Filtrar por nome do cliente..." class="w-full pl-10 bg-slate-50 border-slate-200">
+                        </div>
+                        <select id="filter-status" onchange="renderAll()" class="bg-white border-slate-200 font-bold text-slate-700 min-w-[150px]">
+                            <option value="todos">Status: Todos</option>
+                            <option value="aberto">Status: Abertos</option>
+                            <option value="fechado">Status: Fechados</option>
+                        </select>
+                    </div>
+                </div>
                 <div id="history-container" class="space-y-4"></div>
             </section>
         </main>
@@ -214,21 +228,15 @@
         }
 
         function decimalToTime(decimal) {
-            const h = Math.floor(decimal + 0.00001); // Pequena margem para evitar erros de float
+            const h = Math.floor(decimal + 0.00001); 
             const m = Math.round((decimal - h) * 60);
             return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
         }
 
-        /**
-         * AJUSTE NO CÁLCULO: Para evitar 99,90 ou 80,10, calculamos primeiro o valor total em minutos.
-         * 3:20 = 200 minutos.
-         * Avulso: 200 min * (30/60) = 200 * 0.5 = 100,00 exatamente.
-         */
         function calculatePrice(decimalTime, tipoCliente) {
             const ratePerHour = tipoCliente === 'pacote' ? 25 : 30;
             const totalMinutes = Math.round(decimalTime * 60);
             const pricePerMinute = ratePerHour / 60;
-            
             return Math.round((totalMinutes * pricePerMinute) * 100) / 100;
         }
 
@@ -305,10 +313,12 @@
         }
 
         function renderAll() {
+            // Renderização de opções de clientes
             const clientOptions = '<option value="">Escolha um cliente...</option>' + 
                 db.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             document.getElementById('order-client').innerHTML = clientOptions;
             
+            // Renderização de opções de peças
             document.getElementById('order-item-select').innerHTML = '<option value="">Peça...</option>' + 
                 db.pecas.map(p => `<option value="${p.id}">${p.nome || p.nomedapeça}</option>`).join('');
 
@@ -330,9 +340,21 @@
                     </td>
                 </tr>`).join('');
 
+            // Grid de Peças
             document.getElementById('pecas-grid').innerHTML = db.pecas.map(p => `<div class="bg-white p-4 rounded-2xl border border-slate-100 text-center shadow-sm"><p class="font-bold text-slate-800 text-sm truncate">${p.nome || p.nomedapeça}</p></div>`).join('');
             
-            document.getElementById('history-container').innerHTML = db.pedidos.slice().reverse().map(p => {
+            // Lógica de Filtro Duplo do Histórico (Nome + Status)
+            const filterName = document.getElementById('filter-history').value.toLowerCase();
+            const filterStatus = document.getElementById('filter-status').value;
+
+            const filteredOrders = db.pedidos.filter(p => {
+                const matchesName = p.clientenome.toLowerCase().includes(filterName);
+                const matchesStatus = filterStatus === 'todos' || p.status === filterStatus;
+                return matchesName && matchesStatus;
+            });
+
+            // Histórico (Filtro aplicado aqui)
+            document.getElementById('history-container').innerHTML = filteredOrders.slice().reverse().map(p => {
                 const cli = db.clientes.find(x => String(x.id) === String(p.clienteid));
                 const preco = calculatePrice(parseFloat(p.totalhoras) || 0, cli?.tipo || 'avulso');
                 
@@ -355,6 +377,11 @@
                     </div>
                 </div>`;
             }).join('');
+
+            if (filteredOrders.length === 0) {
+                const msg = filterName !== "" ? `Nenhum pedido encontrado para "${filterName}"` : "Nenhum pedido registado.";
+                document.getElementById('history-container').innerHTML = `<p class="text-center text-slate-400 py-8">${msg}</p>`;
+            }
         }
 
         function switchTab(tab) {
@@ -435,7 +462,7 @@
         function updateClientInfo() {
             const id = document.getElementById('order-client').value;
             const box = document.getElementById('client-info-box');
-            calculateRealValue(); // Atualiza valor em real
+            calculateRealValue(); 
             if (!id) { box.innerHTML = `<span class="text-xs text-slate-400 italic">Selecionar cliente</span>`; return; }
             const c = db.clientes.find(x => String(x.id) === String(id));
             if (c.tipo === 'pacote') {
