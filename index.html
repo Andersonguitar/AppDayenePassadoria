@@ -64,7 +64,7 @@
         </div>
     </div>
 
-    <!-- NOVO: Modal de Edição de Cliente -->
+    <!-- Modal de Edição de Cliente -->
     <div id="edit-client-modal" class="modal-overlay">
         <div class="card w-full max-w-md mx-4 overflow-hidden">
             <div class="p-6">
@@ -137,9 +137,12 @@
                             <label class="block text-xs font-bold text-slate-500 uppercase">Cabides Entregues</label>
                             <input type="number" id="order-cabides" placeholder="Qtd de cabides" class="w-full bg-slate-50 border-slate-200 focus:border-indigo-500">
                         </div>
-                        <div class="flex-1 space-y-2 w-full md:w-auto">
-                            <label class="block text-xs font-bold text-slate-500 uppercase">Tempo (HH:MM)</label>
-                            <input type="text" id="order-total-manual" placeholder="Ex: 01:30" class="w-full text-2xl font-black bg-indigo-50 border-indigo-100 text-indigo-900 focus:border-indigo-500">
+                        <div class="flex-[1.5] space-y-2 w-full md:w-auto">
+                            <div class="flex justify-between items-center">
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Tempo (HH:MM)</label>
+                                <span id="display-value-real" class="text-xs font-black text-emerald-600 uppercase">R$ 0,00</span>
+                            </div>
+                            <input type="text" id="order-total-manual" oninput="calculateRealValue()" placeholder="Ex: 01:30" class="w-full text-2xl font-black bg-indigo-50 border-indigo-100 text-indigo-900 focus:border-indigo-500">
                         </div>
                         <button onclick="finalizeOrder()" class="w-full md:w-auto bg-emerald-600 text-white px-12 py-4 rounded-2xl font-black text-lg hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100">
                             FINALIZAR E SALVAR
@@ -205,13 +208,45 @@
         function timeToDecimal(timeStr) {
             if (!timeStr || !timeStr.includes(':')) return 0;
             const parts = timeStr.split(':');
-            return parseFloat((parseInt(parts[0] || 0) + (parseInt(parts[1] || 0) / 60)).toFixed(2));
+            const hours = parseInt(parts[0] || 0);
+            const minutes = parseInt(parts[1] || 0);
+            return hours + (minutes / 60);
         }
 
         function decimalToTime(decimal) {
-            const h = Math.floor(decimal);
+            const h = Math.floor(decimal + 0.00001); // Pequena margem para evitar erros de float
             const m = Math.round((decimal - h) * 60);
             return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        }
+
+        /**
+         * AJUSTE NO CÁLCULO: Para evitar 99,90 ou 80,10, calculamos primeiro o valor total em minutos.
+         * 3:20 = 200 minutos.
+         * Avulso: 200 min * (30/60) = 200 * 0.5 = 100,00 exatamente.
+         */
+        function calculatePrice(decimalTime, tipoCliente) {
+            const ratePerHour = tipoCliente === 'pacote' ? 25 : 30;
+            const totalMinutes = Math.round(decimalTime * 60);
+            const pricePerMinute = ratePerHour / 60;
+            
+            return Math.round((totalMinutes * pricePerMinute) * 100) / 100;
+        }
+
+        function calculateRealValue() {
+            const clientId = document.getElementById('order-client').value;
+            const timeStr = document.getElementById('order-total-manual').value;
+            const display = document.getElementById('display-value-real');
+            
+            if (!clientId || !timeStr.includes(':')) {
+                display.innerText = "R$ 0,00";
+                return;
+            }
+
+            const cli = db.clientes.find(x => String(x.id) === String(clientId));
+            const decimal = timeToDecimal(timeStr);
+            const price = calculatePrice(decimal, cli.tipo);
+            
+            display.innerText = `R$ ${price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
 
         function showLoader(show, text = "A processar...") {
@@ -297,7 +332,11 @@
 
             document.getElementById('pecas-grid').innerHTML = db.pecas.map(p => `<div class="bg-white p-4 rounded-2xl border border-slate-100 text-center shadow-sm"><p class="font-bold text-slate-800 text-sm truncate">${p.nome || p.nomedapeça}</p></div>`).join('');
             
-            document.getElementById('history-container').innerHTML = db.pedidos.slice().reverse().map(p => `
+            document.getElementById('history-container').innerHTML = db.pedidos.slice().reverse().map(p => {
+                const cli = db.clientes.find(x => String(x.id) === String(p.clienteid));
+                const preco = calculatePrice(parseFloat(p.totalhoras) || 0, cli?.tipo || 'avulso');
+                
+                return `
                 <div class="bg-white p-5 rounded-2xl border-l-4 ${p.status === 'aberto' ? 'border-amber-400' : 'border-emerald-400'} shadow-sm">
                     <div class="flex justify-between items-start">
                         <div>
@@ -310,8 +349,12 @@
                              <button onclick="confirmDeleteOrder('${p.id}')" class="p-1.5 hover:bg-red-50 text-red-500 rounded-lg" title="Excluir">🗑️</button>
                         </div>
                     </div>
-                    <p class="mt-4 text-xl font-black text-indigo-900">${decimalToTime(parseFloat(p.totalhoras) || 0)}h</p>
-                </div>`).join('');
+                    <div class="mt-4 flex justify-between items-end">
+                        <p class="text-xl font-black text-indigo-900">${decimalToTime(parseFloat(p.totalhoras) || 0)}h</p>
+                        <p class="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg">R$ ${preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         function switchTab(tab) {
@@ -392,6 +435,7 @@
         function updateClientInfo() {
             const id = document.getElementById('order-client').value;
             const box = document.getElementById('client-info-box');
+            calculateRealValue(); // Atualiza valor em real
             if (!id) { box.innerHTML = `<span class="text-xs text-slate-400 italic">Selecionar cliente</span>`; return; }
             const c = db.clientes.find(x => String(x.id) === String(id));
             if (c.tipo === 'pacote') {
@@ -445,6 +489,7 @@
                 currentOrderItems = []; 
                 document.getElementById('order-total-manual').value = ''; 
                 document.getElementById('order-cabides').value = ''; 
+                document.getElementById('display-value-real').innerText = "R$ 0,00";
                 renderOrderItems(); 
                 await loadAllData(); 
                 switchTab('status'); 
