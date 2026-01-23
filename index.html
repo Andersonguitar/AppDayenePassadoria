@@ -16,16 +16,86 @@
         input, select { height: 2.75rem; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 0 1rem; outline: none; transition: border-color 0.2s; }
         input:focus, select:focus { border-color: #4f46e5; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(4px); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Estilização dos Logótipos */
+        .app-logo { height: 80px; width: auto; object-fit: contain; }
+        .receipt-logo { height: 120px; width: auto; max-width: 280px; object-fit: contain; margin: 0 auto; }
     </style>
 </head>
 <body class="antialiased">
+    <script>
+        const LOGO_DRIVE_URL = "https://lh3.googleusercontent.com/u/0/d/1KhEmSLFx9gRrYGvXpNvkk0H_zPyQSbwj=w1000-iv1";
+    </script>
+
     <div id="loader" class="loading-overlay">
         <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-indigo-600"></div>
         <p class="mt-4 text-indigo-900 font-semibold" id="loader-text">A processar...</p>
     </div>
 
-    <!-- Modal de Confirmação -->
+    <!-- Modal de Comprovativo -->
+    <div id="receipt-modal" class="modal-overlay" onclick="closeReceiptModal(event)">
+        <div class="card w-full max-w-sm mx-4 overflow-hidden bg-white border-2 border-indigo-50" id="receipt-content">
+            <div class="p-8 text-center space-y-6">
+                <div>
+                    <img src="https://lh3.googleusercontent.com/u/0/d/1KhEmSLFx9gRrYGvXpNvkk0H_zPyQSbwj=w1000-iv1" 
+                         alt="Línea Passadoria Logo" 
+                         class="receipt-logo">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-3">Comprovativo de Serviço</p>
+                </div>
+                
+                <div class="py-4 border-y border-dashed border-slate-200 space-y-4">
+                    <div class="text-left">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block">Data/Hora</label>
+                        <p id="receipt-date" class="text-sm font-medium text-slate-600 mb-2"></p>
+                        
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block">Cliente</label>
+                        <p id="receipt-client" class="text-lg font-bold text-slate-800"></p>
+                    </div>
+                    
+                    <div class="flex justify-between items-end">
+                        <div class="text-left">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase block">Tempo de Serviço</label>
+                            <p id="receipt-hours" class="text-2xl font-black text-indigo-900"></p>
+                        </div>
+                        <div class="text-right">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase block">Total a Pagar</label>
+                            <p id="receipt-price" class="text-2xl font-black text-emerald-600"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <p class="text-[10px] text-slate-400 italic">Obrigado pela preferência!</p>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-3 text-center">
+                 <button onclick="closeReceiptModal(null)" class="text-xs font-bold text-indigo-600 hover:underline">Fechar Visualização</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Recarga -->
+    <div id="recharge-modal" class="modal-overlay">
+        <div class="card w-full max-w-sm mx-4 overflow-hidden">
+            <div class="p-6">
+                <h3 class="text-xl font-bold text-slate-900 mb-4">Recarregar Saldo</h3>
+                <input type="hidden" id="recharge-cli-id">
+                <div class="space-y-4">
+                    <p id="recharge-cli-name" class="font-bold text-slate-700"></p>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Horas a Adicionar</label>
+                        <input type="number" id="recharge-amount" class="w-full" value="10">
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 flex gap-3 justify-end">
+                <button onclick="document.getElementById('recharge-modal').style.display='none'" class="px-4 py-2 text-slate-600 font-semibold hover:bg-slate-200 rounded-xl">Cancelar</button>
+                <button onclick="confirmRecharge()" class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modais de Confirmação e Edição -->
     <div id="confirm-modal" class="modal-overlay">
         <div class="card w-full max-w-md mx-4 overflow-hidden">
             <div class="p-6">
@@ -34,13 +104,12 @@
                 <p class="mt-2 text-slate-600 leading-relaxed" id="modal-msg"></p>
             </div>
             <div class="bg-slate-50 p-4 flex gap-3 justify-end">
-                <button id="modal-cancel" class="px-4 py-2 text-slate-600 font-semibold hover:bg-slate-200 rounded-xl transition-colors">Cancelar</button>
-                <button id="modal-confirm" class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">Confirmar</button>
+                <button id="modal-cancel" class="px-4 py-2 text-slate-600 font-semibold hover:bg-slate-200 rounded-xl">Cancelar</button>
+                <button id="modal-confirm" class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700">Confirmar</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Edição de Pedido -->
     <div id="edit-order-modal" class="modal-overlay">
         <div class="card w-full max-w-md mx-4 overflow-hidden">
             <div class="p-6">
@@ -49,7 +118,7 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tempo (HH:MM)</label>
-                        <input type="text" id="edit-order-hours" class="w-full font-bold" placeholder="01:30">
+                        <input type="text" id="edit-order-hours" class="w-full font-bold">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cabides</label>
@@ -58,49 +127,26 @@
                 </div>
             </div>
             <div class="bg-slate-50 p-4 flex gap-3 justify-end">
-                <button onclick="closeEditModal()" class="px-4 py-2 text-slate-600 font-semibold hover:bg-slate-200 rounded-xl">Cancelar</button>
-                <button onclick="saveEditOrder()" class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700">Salvar Alterações</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Edição de Cliente -->
-    <div id="edit-client-modal" class="modal-overlay">
-        <div class="card w-full max-w-md mx-4 overflow-hidden">
-            <div class="p-6">
-                <h3 class="text-xl font-bold text-slate-900 mb-4">Editar Cliente</h3>
-                <input type="hidden" id="edit-cli-id">
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome Completo</label>
-                        <input type="text" id="edit-cli-nome" class="w-full">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Telefone / WhatsApp</label>
-                        <input type="text" id="edit-cli-contato" class="w-full">
-                    </div>
-                </div>
-            </div>
-            <div class="bg-slate-50 p-4 flex gap-3 justify-end">
-                <button onclick="closeEditClientModal()" class="px-4 py-2 text-slate-600 font-semibold hover:bg-slate-200 rounded-xl">Cancelar</button>
-                <button onclick="saveEditClient()" class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700">Atualizar Cadastro</button>
+                <button onclick="document.getElementById('edit-order-modal').style.display='none'" class="px-4 py-2 text-slate-600 font-semibold hover:bg-slate-200 rounded-xl">Cancelar</button>
+                <button onclick="saveEditOrder()" class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700">Salvar</button>
             </div>
         </div>
     </div>
 
     <div class="max-w-4xl mx-auto px-4 py-8">
         <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Línea Passadoria</h1>
-                <p class="text-slate-500 font-medium">Gestão de Produção e Saldos</p>
-                <div id="status-conexao" class="text-[10px] mt-1 font-bold uppercase tracking-widest text-amber-500 italic">A verificar ligação...</div>
+            <div class="flex items-center gap-4">
+                <img src="https://lh3.googleusercontent.com/u/0/d/1KhEmSLFx9gRrYGvXpNvkk0H_zPyQSbwj=w1000-iv1" 
+                     alt="Línea Passadoria Logo" 
+                     class="app-logo">
+                <div>
+                    <p class="text-slate-500 font-medium leading-tight">Gestão de Produção e Saldos</p>
+                    <div id="status-conexao" class="text-[10px] mt-1 font-bold uppercase tracking-widest text-amber-500 italic">A verificar ligação...</div>
+                </div>
             </div>
-            <button onclick="loadAllData()" class="hidden items-center justify-center gap-2 bg-white border border-slate-200 text-slate-600 px-5 py-2.5 rounded-xl hover:bg-slate-50 transition-all font-semibold shadow-sm">
-                <span>🔄</span> Sincronizar Drive
-            </button>
         </header>
 
-        <nav class="flex overflow-x-auto space-x-2 mb-8 border-b border-slate-200 no-scrollbar">
+        <nav class="flex overflow-x-auto space-x-2 mb-8 border-b border-slate-200">
             <button onclick="switchTab('pedidos')" id="tab-pedidos" class="whitespace-nowrap pb-3 px-4 text-sm font-medium tab-active">Novo Pedido</button>
             <button onclick="switchTab('clientes')" id="tab-clientes" class="whitespace-nowrap pb-3 px-4 text-sm font-medium text-slate-500 hover:text-indigo-600">Clientes</button>
             <button onclick="switchTab('pecas')" id="tab-pecas" class="whitespace-nowrap pb-3 px-4 text-sm font-medium text-slate-500 hover:text-indigo-600">Peças</button>
@@ -108,11 +154,10 @@
         </nav>
 
         <main>
+            <!-- Seção Novo Pedido -->
             <section id="sec-pedidos" class="space-y-6">
                 <div class="card p-6">
-                    <h2 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                        <span class="bg-indigo-50 p-2 rounded-lg text-indigo-600">📝</span> Criar Pedido
-                    </h2>
+                    <h2 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">📝 Criar Pedido</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div class="space-y-2">
                             <label class="block text-xs font-bold text-slate-500 uppercase">Cliente</label>
@@ -126,65 +171,63 @@
                         <label class="block text-xs font-bold text-slate-500 uppercase">Itens da Entrega</label>
                         <div class="flex flex-col md:flex-row gap-2">
                             <select id="order-item-select" class="flex-1"></select>
-                            <button onclick="addItemToOrder()" class="btn-primary px-6 py-2 rounded-xl font-bold shadow-sm">Adicionar</button>
+                            <button onclick="addItemToOrder()" class="btn-primary px-6 py-2 rounded-xl font-bold">Adicionar</button>
                         </div>
                     </div>
                     <div id="order-items-list" class="space-y-2 min-h-[120px] border border-slate-100 rounded-2xl p-4 bg-slate-50/30 mb-8">
                         <p class="text-center text-slate-400 py-8 text-sm">Nenhum item adicionado.</p>
                     </div>
                     <div class="flex flex-col md:flex-row justify-between items-end gap-6 pt-6 border-t border-slate-100">
-                        <div class="flex-1 space-y-2 w-full md:w-auto">
-                            <label class="block text-xs font-bold text-slate-500 uppercase">Cabides Entregues</label>
-                            <input type="number" id="order-cabides" placeholder="Qtd de cabides" class="w-full bg-slate-50 border-slate-200 focus:border-indigo-500">
+                        <div class="flex-1 space-y-2 w-full">
+                            <label class="block text-xs font-bold text-slate-500 uppercase">Cabides</label>
+                            <input type="number" id="order-cabides" placeholder="Qtd" class="w-full">
                         </div>
-                        <div class="flex-[1.5] space-y-2 w-full md:w-auto">
+                        <div class="flex-[1.5] space-y-2 w-full">
                             <div class="flex justify-between items-center">
                                 <label class="block text-xs font-bold text-slate-500 uppercase">Tempo (HH:MM)</label>
-                                <span id="display-value-real" class="text-xs font-black text-emerald-600 uppercase">R$ 0,00</span>
+                                <span id="display-value-real" class="text-xs font-black text-emerald-600">R$ 0,00</span>
                             </div>
-                            <input type="text" id="order-total-manual" oninput="calculateRealValue()" placeholder="Ex: 01:30" class="w-full text-2xl font-black bg-indigo-50 border-indigo-100 text-indigo-900 focus:border-indigo-500">
+                            <input type="text" id="order-total-manual" oninput="calculateRealValue()" placeholder="01:30" class="w-full text-2xl font-black bg-indigo-50 text-indigo-900">
                         </div>
-                        <button onclick="finalizeOrder()" class="w-full md:w-auto bg-emerald-600 text-white px-12 py-4 rounded-2xl font-black text-lg hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100">
-                            FINALIZAR E SALVAR
-                        </button>
+                        <button onclick="finalizeOrder()" class="w-full md:w-auto bg-emerald-600 text-white px-12 py-4 rounded-2xl font-black text-lg hover:bg-emerald-700 shadow-lg">FINALIZAR</button>
                     </div>
                 </div>
             </section>
 
+            <!-- Seção Clientes -->
             <section id="sec-clientes" class="hidden space-y-6">
                 <div class="card p-6">
-                    <h2 class="text-lg font-bold text-slate-800 mb-6">Registo de Novo Cliente</h2>
+                    <h2 class="text-lg font-bold text-slate-800 mb-6">Novo Cliente</h2>
                     <form id="form-cliente" onsubmit="handleFormCliente(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" id="cli-nome" placeholder="Nome do Cliente" required>
-                        <input type="text" id="cli-contato" placeholder="Telemóvel / WhatsApp" required>
-                        <select id="cli-tipo" class="font-semibold">
-                            <option value="avulso">Regime: Avulso</option>
-                            <option value="pacote">Regime: Pacote (10h)</option>
+                        <input type="text" id="cli-nome" placeholder="Nome" required>
+                        <input type="text" id="cli-contato" placeholder="Contato" required>
+                        <select id="cli-tipo">
+                            <option value="avulso">Avulso</option>
+                            <option value="pacote">Pacote (10h)</option>
                         </select>
-                        <button type="submit" class="md:col-span-1 btn-primary py-3 rounded-xl font-bold">Gravar Cliente</button>
+                        <button type="submit" class="btn-primary py-3 rounded-xl font-bold">Gravar</button>
                     </form>
                 </div>
                 <div class="card overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-50 border-b border-slate-100">
-                                <tr>
-                                    <th class="p-4 font-bold text-slate-600">Nome / Contato</th>
-                                    <th class="p-4 font-bold text-slate-600">Regime</th>
-                                    <th class="p-4 font-bold text-slate-600 text-center">Saldo</th>
-                                    <th class="p-4 font-bold text-slate-600 text-right">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-clientes-body" class="divide-y divide-slate-50"></tbody>
-                        </table>
-                    </div>
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="p-4">Cliente</th>
+                                <th class="p-4">Regime</th>
+                                <th class="p-4 text-center">Saldo</th>
+                                <th class="p-4 text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-clientes-body" class="divide-y divide-slate-50"></tbody>
+                    </table>
                 </div>
             </section>
 
+            <!-- Seção Peças -->
             <section id="sec-pecas" class="hidden space-y-6">
                 <div class="card p-6">
-                    <h2 class="text-lg font-bold text-slate-800 mb-6">Novo Item no Catálogo</h2>
-                    <form id="form-peca" onsubmit="handleFormPeca(event)" class="flex flex-col md:flex-row gap-3">
+                    <h2 class="text-lg font-bold text-slate-800 mb-6">Adicionar Peça</h2>
+                    <form id="form-peca" onsubmit="handleFormPeca(event)" class="flex gap-3">
                         <input type="text" id="peca-nome" placeholder="Nome da Peça" class="flex-1" required>
                         <button type="submit" class="btn-primary px-8 rounded-xl font-bold">Adicionar</button>
                     </form>
@@ -192,20 +235,15 @@
                 <div id="pecas-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
             </section>
 
+            <!-- Seção Histórico -->
             <section id="sec-status" class="hidden space-y-4">
-                <!-- Filtro de Histórico -->
-                <div class="card p-4">
-                    <div class="flex flex-col md:flex-row gap-3">
-                        <div class="relative flex-1">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">🔍</span>
-                            <input type="text" id="filter-history" oninput="renderAll()" placeholder="Filtrar por nome do cliente..." class="w-full pl-10 bg-slate-50 border-slate-200">
-                        </div>
-                        <select id="filter-status" onchange="renderAll()" class="bg-white border-slate-200 font-bold text-slate-700 min-w-[150px]">
-                            <option value="todos">Status: Todos</option>
-                            <option value="aberto">Status: Abertos</option>
-                            <option value="fechado">Status: Fechados</option>
-                        </select>
-                    </div>
+                <div class="card p-4 flex gap-3">
+                    <input type="text" id="filter-history" oninput="renderAll()" placeholder="Procurar cliente..." class="flex-1">
+                    <select id="filter-status" onchange="renderAll()">
+                        <option value="todos">Todos</option>
+                        <option value="aberto">Abertos</option>
+                        <option value="fechado">Fechados</option>
+                    </select>
                 </div>
                 <div id="history-container" class="space-y-4"></div>
             </section>
@@ -222,9 +260,7 @@
         function timeToDecimal(timeStr) {
             if (!timeStr || !timeStr.includes(':')) return 0;
             const parts = timeStr.split(':');
-            const hours = parseInt(parts[0] || 0);
-            const minutes = parseInt(parts[1] || 0);
-            return hours + (minutes / 60);
+            return parseInt(parts[0] || 0) + (parseInt(parts[1] || 0) / 60);
         }
 
         function decimalToTime(decimal) {
@@ -233,35 +269,29 @@
             return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
         }
 
+        function formatDate(isoString) {
+            const d = new Date(isoString);
+            return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+        }
+
         function calculatePrice(decimalTime, tipoCliente) {
-            const ratePerHour = tipoCliente === 'pacote' ? 25 : 30;
-            const totalMinutes = Math.round(decimalTime * 60);
-            const pricePerMinute = ratePerHour / 60;
-            return Math.round((totalMinutes * pricePerMinute) * 100) / 100;
+            const rate = tipoCliente === 'pacote' ? 25 : 30;
+            return Math.round((decimalTime * rate) * 100) / 100;
         }
 
         function calculateRealValue() {
             const clientId = document.getElementById('order-client').value;
             const timeStr = document.getElementById('order-total-manual').value;
             const display = document.getElementById('display-value-real');
-            
-            if (!clientId || !timeStr.includes(':')) {
-                display.innerText = "R$ 0,00";
-                return;
-            }
-
+            if (!clientId || !timeStr.includes(':')) { display.innerText = "R$ 0,00"; return; }
             const cli = db.clientes.find(x => String(x.id) === String(clientId));
-            const decimal = timeToDecimal(timeStr);
-            const price = calculatePrice(decimal, cli.tipo);
-            
-            display.innerText = `R$ ${price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            display.innerText = `R$ ${calculatePrice(timeToDecimal(timeStr), cli.tipo).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
         }
 
-        function showLoader(show, text = "A processar...") {
+        function showLoader(show, text = "Processando...") {
             const loader = document.getElementById('loader');
-            const loaderText = document.getElementById('loader-text');
-            if(loaderText) loaderText.innerText = text;
-            if(loader) loader.style.display = show ? 'flex' : 'none';
+            document.getElementById('loader-text').innerText = text;
+            loader.style.display = show ? 'flex' : 'none';
         }
 
         function showConfirm(title, msg, onConfirm) {
@@ -273,115 +303,172 @@
             document.getElementById('modal-cancel').onclick = () => { modal.style.display = 'none'; };
         }
 
+        function openReceiptModal(orderId) {
+            const p = db.pedidos.find(x => String(x.id) === String(orderId));
+            const cli = db.clientes.find(x => String(x.id) === String(p?.clienteid));
+            if (!p) return;
+            document.getElementById('receipt-date').innerText = formatDate(p.data);
+            document.getElementById('receipt-client').innerText = p.clientenome;
+            document.getElementById('receipt-hours').innerText = decimalToTime(parseFloat(p.totalhoras)) + "h";
+            document.getElementById('receipt-price').innerText = `R$ ${calculatePrice(p.totalhoras, cli?.tipo).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            document.getElementById('receipt-modal').style.display = 'flex';
+        }
+
+        function closeReceiptModal(event) {
+            if (!event || event.target === document.getElementById('receipt-modal')) document.getElementById('receipt-modal').style.display = 'none';
+        }
+
+        // Funções de Gestão de Clientes (Pacote e Recarga)
+        async function makePacote(cliId) {
+            showConfirm("Tornar Pacote", "Deseja mudar este cliente para o regime de Pacote (10h iniciais)?", async () => {
+                showLoader(true);
+                const cli = db.clientes.find(x => String(x.id) === String(cliId));
+                cli.tipo = 'pacote';
+                cli.saldohoras = 10;
+                await runCommand('salvarCliente', cli);
+                await loadAllData();
+            });
+        }
+
+        function openRechargeModal(cliId) {
+            const cli = db.clientes.find(x => String(x.id) === String(cliId));
+            document.getElementById('recharge-cli-id').value = cliId;
+            document.getElementById('recharge-cli-name').innerText = cli.nome;
+            document.getElementById('recharge-modal').style.display = 'flex';
+        }
+
+        async function confirmRecharge() {
+            const id = document.getElementById('recharge-cli-id').value;
+            const amount = parseFloat(document.getElementById('recharge-amount').value);
+            showLoader(true);
+            try {
+                await runCommand('recarregarSaldo', id, amount);
+                document.getElementById('recharge-modal').style.display = 'none';
+                await loadAllData();
+            } catch(e) { alert(e.message); } finally { showLoader(false); }
+        }
+
+        // Funções de Histórico (Editar e Excluir)
+        function openEditOrder(id) {
+            const p = db.pedidos.find(x => String(x.id) === String(id));
+            document.getElementById('edit-order-id').value = id;
+            document.getElementById('edit-order-hours').value = decimalToTime(p.totalhoras);
+            document.getElementById('edit-order-cabides').value = p.cabides || 0;
+            document.getElementById('edit-order-modal').style.display = 'flex';
+        }
+
+        async function saveEditOrder() {
+            const id = document.getElementById('edit-order-id').value;
+            const p = db.pedidos.find(x => String(x.id) === String(id));
+            p.totalhoras = timeToDecimal(document.getElementById('edit-order-hours').value);
+            p.cabides = parseInt(document.getElementById('edit-order-cabides').value);
+            showLoader(true);
+            try {
+                await runCommand('registrarPedido', p);
+                document.getElementById('edit-order-modal').style.display = 'none';
+                await loadAllData();
+            } catch(e) { alert(e.message); } finally { showLoader(false); }
+        }
+
+        async function deleteOrder(id) {
+            showConfirm("Excluir Pedido", "Tem certeza que deseja excluir este pedido? O saldo (se pacote) será devolvido.", async () => {
+                showLoader(true);
+                try {
+                    await runCommand('excluirPedido', id);
+                    await loadAllData();
+                } catch(e) { alert(e.message); } finally { showLoader(false); }
+            });
+        }
+
         async function runCommand(commandName, ...args) {
             if (isGoogleEnv) {
                 return new Promise((resolve, reject) => {
-                    google.script.run
-                        .withSuccessHandler(res => resolve(res))
-                        .withFailureHandler(err => reject(err))[commandName](...args);
+                    google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[commandName](...args);
                 });
             } else {
                 const url = `${WEB_APP_URL}?action=${commandName}&data=${encodeURIComponent(JSON.stringify(args))}`;
-                try {
-                    const response = await fetch(url, { method: 'GET', mode: 'cors', redirect: 'follow' });
-                    if (!response.ok) throw new Error("Erro na rede: " + response.statusText);
-                    const json = await response.json();
-                    if (json.status === 'error') throw new Error(json.message);
-                    return json.data;
-                } catch (e) {
-                    throw new Error("Erro de ligação ao Drive.");
-                }
+                const response = await fetch(url);
+                const json = await response.json();
+                if (json.status === 'error') throw new Error(json.message);
+                return json.data;
             }
         }
 
         async function loadAllData() {
-            showLoader(true, "A sincronizar...");
+            showLoader(true, "A carregar dados...");
             try {
                 const data = await runCommand('getData');
                 if (data) {
                     db = data;
                     renderAll();
-                    document.getElementById('status-conexao').innerText = "Online";
-                    document.getElementById('status-conexao').className = "text-[10px] mt-1 font-bold uppercase tracking-widest text-emerald-500";
+                    document.getElementById('status-conexao').innerText = "Conectado";
+                    document.getElementById('status-conexao').className = "text-[10px] mt-1 font-bold text-emerald-50";
                 }
             } catch (e) {
-                document.getElementById('status-conexao').innerText = "Offline";
-                document.getElementById('status-conexao').className = "text-[10px] mt-1 font-bold uppercase tracking-widest text-red-500";
-            } finally {
-                showLoader(false);
-            }
+                document.getElementById('status-conexao').innerText = "Erro de Ligação";
+            } finally { showLoader(false); }
         }
 
         function renderAll() {
-            // Renderização de opções de clientes
-            const clientOptions = '<option value="">Escolha um cliente...</option>' + 
-                db.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-            document.getElementById('order-client').innerHTML = clientOptions;
-            
-            // Renderização de opções de peças
-            document.getElementById('order-item-select').innerHTML = '<option value="">Peça...</option>' + 
-                db.pecas.map(p => `<option value="${p.id}">${p.nome || p.nomedapeça}</option>`).join('');
+            // Dropdowns
+            document.getElementById('order-client').innerHTML = '<option value="">Cliente...</option>' + db.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            document.getElementById('order-item-select').innerHTML = '<option value="">Peça...</option>' + db.pecas.map(p => `<option value="${p.id}">${p.nome || p.nomedapeça}</option>`).join('');
 
-            // Tabela de Clientes
+            // Tabela Clientes - Restaurando Ações
             document.getElementById('table-clientes-body').innerHTML = db.clientes.map(c => `
-                <tr class="hover:bg-slate-50">
-                    <td class="p-4">
-                        <div class="font-bold text-slate-800">${c.nome}</div>
-                        <div class="text-[10px] text-slate-400 font-medium tracking-wider">${c.contato || 'N/A'}</div>
-                    </td>
-                    <td class="p-4 text-xs font-bold uppercase text-indigo-500">${c.tipo}</td>
-                    <td class="p-4 text-center font-black">${c.tipo === 'pacote' ? decimalToTime(parseFloat(c.saldohoras) || 0) + 'h' : '－'}</td>
-                    <td class="p-4 text-right flex justify-end gap-2">
-                        <button onclick="openEditClientModal('${c.id}')" class="p-2 hover:bg-slate-100 rounded-lg" title="Editar Cadastro">✏️</button>
-                        ${c.tipo === 'pacote' ? 
-                            `<button onclick="confirmRecharge('${c.id}')" class="text-[10px] bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg font-bold border border-emerald-100 hover:bg-emerald-100">Recarregar 10h</button>` : 
-                            `<button onclick="confirmUpgrade('${c.id}')" class="text-[10px] bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-bold border border-indigo-100 hover:bg-indigo-100">Tornar Pacote</button>`
-                        }
+                <tr>
+                    <td class="p-4 font-bold text-slate-700">${c.nome}</td>
+                    <td class="p-4 text-xs uppercase font-semibold text-slate-500">${c.tipo}</td>
+                    <td class="p-4 text-center font-bold text-indigo-600">${c.tipo === 'pacote' ? decimalToTime(c.saldohoras) + 'h' : '－'}</td>
+                    <td class="p-4 text-right">
+                        <div class="flex justify-end gap-2">
+                            ${c.tipo === 'avulso' ? 
+                                `<button onclick="makePacote('${c.id}')" title="Tornar Pacote" class="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg text-[10px] font-bold uppercase">Pacote</button>` : 
+                                `<button onclick="openRechargeModal('${c.id}')" title="Recarregar" class="bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg text-[10px] font-bold uppercase">Recarga</button>`
+                            }
+                        </div>
                     </td>
                 </tr>`).join('');
 
-            // Grid de Peças
-            document.getElementById('pecas-grid').innerHTML = db.pecas.map(p => `<div class="bg-white p-4 rounded-2xl border border-slate-100 text-center shadow-sm"><p class="font-bold text-slate-800 text-sm truncate">${p.nome || p.nomedapeça}</p></div>`).join('');
+            // Peças
+            document.getElementById('pecas-grid').innerHTML = db.pecas.map(p => `<div class="bg-white p-3 rounded-xl border border-slate-100 text-center text-sm font-bold text-slate-700 shadow-sm">${p.nome || p.nomedapeça}</div>`).join('');
             
-            // Lógica de Filtro Duplo do Histórico (Nome + Status)
-            const filterName = document.getElementById('filter-history').value.toLowerCase();
-            const filterStatus = document.getElementById('filter-status').value;
+            // Histórico - Restaurando Cards, Cores e Botões
+            const filter = document.getElementById('filter-history').value.toLowerCase();
+            const statusFilter = document.getElementById('filter-status').value;
+            const filtered = db.pedidos.filter(p => p.clientenome.toLowerCase().includes(filter) && (statusFilter === 'todos' || p.status === statusFilter));
 
-            const filteredOrders = db.pedidos.filter(p => {
-                const matchesName = p.clientenome.toLowerCase().includes(filterName);
-                const matchesStatus = filterStatus === 'todos' || p.status === filterStatus;
-                return matchesName && matchesStatus;
-            });
-
-            // Histórico (Filtro aplicado aqui)
-            document.getElementById('history-container').innerHTML = filteredOrders.slice().reverse().map(p => {
-                const cli = db.clientes.find(x => String(x.id) === String(p.clienteid));
-                const preco = calculatePrice(parseFloat(p.totalhoras) || 0, cli?.tipo || 'avulso');
-                
-                return `
-                <div class="bg-white p-5 rounded-2xl border-l-4 ${p.status === 'aberto' ? 'border-amber-400' : 'border-emerald-400'} shadow-sm">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="font-bold text-slate-900"><span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded mr-2 text-xs font-bold">👔 ${p.cabides || 0}</span>${p.clientenome}</p>
-                            <p class="text-[10px] text-slate-400">${p.data ? new Date(p.data).toLocaleString() : ''}</p>
+            document.getElementById('history-container').innerHTML = filtered.slice().reverse().map(p => `
+                <div class="bg-white p-4 rounded-xl border-l-4 ${p.status === 'aberto' ? 'border-amber-400' : 'border-emerald-500'} shadow-sm relative group">
+                    <div onclick="openReceiptModal('${p.id}')" class="cursor-pointer">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-bold text-slate-800">👔 ${p.cabides || 0} - ${p.clientenome}</p>
+                                <p class="text-[10px] text-slate-400 font-medium">${formatDate(p.data)}</p>
+                            </div>
+                            <span class="text-[10px] uppercase font-black ${p.status === 'aberto' ? 'text-amber-500' : 'text-emerald-600'}">${p.status}</span>
                         </div>
-                        <div class="flex items-center gap-2">
-                             <button onclick="toggleStatus('${p.id}', '${p.status}')" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase ${p.status === 'aberto' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}">${p.status}</button>
-                             <button onclick="openEditModal('${p.id}')" class="p-1.5 hover:bg-slate-100 rounded-lg" title="Editar">✏️</button>
-                             <button onclick="confirmDeleteOrder('${p.id}')" class="p-1.5 hover:bg-red-50 text-red-500 rounded-lg" title="Excluir">🗑️</button>
+                        <div class="mt-3 flex justify-between items-end">
+                            <p class="text-2xl font-black text-slate-900">${decimalToTime(p.totalhoras)}h</p>
                         </div>
                     </div>
-                    <div class="mt-4 flex justify-between items-end">
-                        <p class="text-xl font-black text-indigo-900">${decimalToTime(parseFloat(p.totalhoras) || 0)}h</p>
-                        <p class="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg">R$ ${preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    
+                    <div class="mt-4 flex items-center justify-between border-t border-slate-50 pt-3">
+                        <button onclick="toggleStatus('${p.id}', '${p.status}')" class="text-[10px] font-bold uppercase py-1 px-3 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200">Mudar Status</button>
+                        <div class="flex gap-4">
+                            <button onclick="openEditOrder('${p.id}')" class="text-slate-400 hover:text-indigo-600 transition-colors" title="Editar">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            <button onclick="deleteOrder('${p.id}')" class="text-slate-400 hover:text-red-500 transition-colors" title="Excluir">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                </div>`;
-            }).join('');
-
-            if (filteredOrders.length === 0) {
-                const msg = filterName !== "" ? `Nenhum pedido encontrado para "${filterName}"` : "Nenhum pedido registado.";
-                document.getElementById('history-container').innerHTML = `<p class="text-center text-slate-400 py-8">${msg}</p>`;
-            }
+                </div>`).join('');
         }
 
         function switchTab(tab) {
@@ -393,81 +480,13 @@
             document.getElementById(`tab-${tab}`).classList.add('tab-active');
         }
 
-        function openEditClientModal(id) {
-            const c = db.clientes.find(x => String(x.id) === String(id));
-            if (!c) return;
-            document.getElementById('edit-cli-id').value = id;
-            document.getElementById('edit-cli-nome').value = c.nome;
-            document.getElementById('edit-cli-contato').value = c.contato || '';
-            document.getElementById('edit-client-modal').style.display = 'flex';
-        }
-
-        function closeEditClientModal() { document.getElementById('edit-client-modal').style.display = 'none'; }
-
-        async function saveEditClient() {
-            const id = document.getElementById('edit-cli-id').value;
-            const clienteOriginal = db.clientes.find(x => String(x.id) === String(id));
-            const novoNome = document.getElementById('edit-cli-nome').value;
-            const novoContato = document.getElementById('edit-cli-contato').value;
-            
-            if(!novoNome) { alert("Nome é obrigatório."); return; }
-            
-            showLoader(true, "A atualizar dados...");
-            try {
-                await runCommand('salvarCliente', { ...clienteOriginal, nome: novoNome, contato: novoContato });
-                closeEditClientModal();
-                await loadAllData();
-            } catch (e) { alert(e.message); } finally { showLoader(false); }
-        }
-
-        function confirmUpgrade(clienteId) {
-            const cliente = db.clientes.find(c => String(c.id) === String(clienteId));
-            if(!cliente) return;
-            showConfirm("Mudar para Pacote?", `Alterar ${cliente.nome} para regime de Pacote com saldo inicial de 10h?`, async () => {
-                showLoader(true, "A atualizar regime...");
-                try {
-                    const clienteAtualizado = { ...cliente, tipo: 'pacote', saldohoras: 10 };
-                    await runCommand('salvarCliente', clienteAtualizado);
-                    await loadAllData();
-                } catch (e) { alert("Erro: " + e.message); } finally { showLoader(false); }
-            });
-        }
-
-        function confirmRecharge(clienteId) {
-            const cliente = db.clientes.find(c => String(c.id) === String(clienteId));
-            if(!cliente) return;
-            showConfirm("Recarregar Saldo?", `Adicionar 10h a ${cliente.nome}?`, async () => {
-                showLoader(true, "A recarregar...");
-                try {
-                    const novoSaldo = (parseFloat(cliente.saldohoras) || 0) + 10;
-                    const clienteAtualizado = { ...cliente, saldohoras: novoSaldo };
-                    await runCommand('salvarCliente', clienteAtualizado);
-                    await loadAllData();
-                } catch (e) { alert("Erro: " + e.message); } finally { showLoader(false); }
-            });
-        }
-
-        function confirmDeleteOrder(orderId) {
-            const pedido = db.pedidos.find(p => String(p.id) === String(orderId));
-            if(!pedido) return;
-            showConfirm("Excluir Pedido?", `Tem certeza que deseja excluir permanentemente o pedido de ${pedido.clientenome}?`, async () => {
-                showLoader(true, "A excluir pedido...");
-                try {
-                    await runCommand('excluirPedido', orderId);
-                    await loadAllData();
-                } catch (e) { alert("Erro: " + e.message); } finally { showLoader(false); }
-            });
-        }
-
         function updateClientInfo() {
             const id = document.getElementById('order-client').value;
             const box = document.getElementById('client-info-box');
             calculateRealValue(); 
-            if (!id) { box.innerHTML = `<span class="text-xs text-slate-400 italic">Selecionar cliente</span>`; return; }
+            if (!id) { box.innerHTML = `<span class="text-xs italic">Escolha o cliente</span>`; return; }
             const c = db.clientes.find(x => String(x.id) === String(id));
-            if (c.tipo === 'pacote') {
-                box.innerHTML = `<div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-400 uppercase">Saldo</span><span class="text-xl font-black ${c.saldohoras >= 0 ? 'text-emerald-600' : 'text-red-600'}">${decimalToTime(parseFloat(c.saldohoras))}h</span></div>`;
-            } else { box.innerHTML = `<span class="text-indigo-600 font-bold text-center text-sm">Regime Avulso</span>`; }
+            box.innerHTML = c.tipo === 'pacote' ? `<p class="font-black text-xl text-center text-indigo-900">Saldo: ${decimalToTime(c.saldohoras)}h</p>` : `<p class="text-center font-bold text-slate-600">Avulso</p>`;
         }
 
         function addItemToOrder() {
@@ -482,95 +501,53 @@
         function renderOrderItems() {
             const container = document.getElementById('order-items-list');
             if (currentOrderItems.length === 0) { container.innerHTML = `<p class="text-center text-slate-400 py-8 text-sm">Vazio</p>`; return; }
-            container.innerHTML = currentOrderItems.map(item => `
-                <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-100 mb-2">
-                    <p class="font-bold text-slate-800">${item.nome}</p>
-                    <div class="flex items-center bg-slate-100 rounded-lg p-1">
-                        <button onclick="changeQtd('${item.id}', -1)" class="w-8 h-8 font-bold">－</button>
-                        <span class="px-3 font-bold">${item.qtd}</span>
-                        <button onclick="changeQtd('${item.id}', 1)" class="w-8 h-8 font-bold">＋</button>
-                    </div>
-                </div>`).join('');
-        }
-
-        function changeQtd(id, delta) {
-            const item = currentOrderItems.find(i => String(i.id) === String(id));
-            item.qtd += delta;
-            if (item.qtd <= 0) currentOrderItems = currentOrderItems.filter(i => String(i.id) !== String(id));
-            renderOrderItems();
+            container.innerHTML = currentOrderItems.map(item => `<div class="flex justify-between bg-white p-2 rounded-lg border mb-1"><p class="text-slate-700">${item.nome}</p><b>x${item.qtd}</b></div>`).join('');
         }
 
         async function finalizeOrder() {
             const clientId = document.getElementById('order-client').value;
             const timeStr = document.getElementById('order-total-manual').value;
-            if (!clientId || !timeStr) { alert("Por favor, preencha o cliente e o tempo."); return; }
+            if (!clientId || !timeStr) { alert("Dados incompletos."); return; }
             const cli = db.clientes.find(x => String(x.id) === String(clientId));
             const pedido = { 
-                id: Date.now().toString(), data: new Date().toISOString(), clienteid: cli.id, clientenome: cli.nome, 
-                items: JSON.stringify(currentOrderItems), totalhoras: timeToDecimal(timeStr), status: 'aberto', 
-                cabides: parseInt(document.getElementById('order-cabides').value || 0)
+                id: Date.now().toString(), 
+                data: new Date().toISOString(), 
+                clienteid: cli.id, 
+                clientenome: cli.nome, 
+                items: JSON.stringify(currentOrderItems), 
+                totalhoras: timeToDecimal(timeStr), 
+                status: 'aberto', 
+                cabides: parseInt(document.getElementById('order-cabides').value || 0) 
             };
-            showLoader(true, "A salvar pedido...");
+            showLoader(true, "Salvando...");
             try { 
                 await runCommand('registrarPedido', pedido); 
                 currentOrderItems = []; 
-                document.getElementById('order-total-manual').value = ''; 
-                document.getElementById('order-cabides').value = ''; 
-                document.getElementById('display-value-real').innerText = "R$ 0,00";
-                renderOrderItems(); 
+                document.getElementById('order-cabides').value = "";
+                document.getElementById('order-total-manual').value = "";
                 await loadAllData(); 
                 switchTab('status'); 
-            } catch(e) { alert("Erro ao salvar: " + e.message); } finally { showLoader(false); }
+            } catch(e) { alert(e.message); } finally { showLoader(false); }
         }
 
         async function toggleStatus(id, current) {
             const next = current === 'aberto' ? 'fechado' : 'aberto';
-            showLoader(true, "A atualizar...");
+            showLoader(true, "Atualizando...");
             try { await runCommand('atualizarStatusPedido', id, next); await loadAllData(); } catch(e) { alert(e.message); } finally { showLoader(false); }
         }
 
         async function handleFormCliente(e) {
             e.preventDefault();
-            const novo = { 
-                id: Date.now().toString(), 
-                nome: document.getElementById('cli-nome').value, 
-                contato: document.getElementById('cli-contato').value, 
-                tipo: document.getElementById('cli-tipo').value, 
-                saldohoras: document.getElementById('cli-tipo').value === 'pacote' ? 10 : 0 
-            };
-            showLoader(true, "A guardar cliente...");
+            const novo = { id: Date.now().toString(), nome: document.getElementById('cli-nome').value, contato: document.getElementById('cli-contato').value, tipo: document.getElementById('cli-tipo').value, saldohoras: document.getElementById('cli-tipo').value === 'pacote' ? 10 : 0 };
+            showLoader(true, "Gravando...");
             try { await runCommand('salvarCliente', novo); e.target.reset(); await loadAllData(); } catch(e) { alert(e.message); } finally { showLoader(false); }
         }
 
         async function handleFormPeca(e) {
             e.preventDefault();
             const nova = { id: Date.now().toString(), nome: document.getElementById('peca-nome').value };
-            showLoader(true, "A adicionar peça...");
+            showLoader(true, "Gravando...");
             try { await runCommand('salvarPeca', nova); e.target.reset(); await loadAllData(); } catch(e) { alert(e.message); } finally { showLoader(false); }
-        }
-
-        function openEditModal(id) {
-            const p = db.pedidos.find(x => String(x.id) === String(id));
-            if (!p) return;
-            document.getElementById('edit-order-id').value = id;
-            document.getElementById('edit-order-hours').value = decimalToTime(p.totalhoras);
-            document.getElementById('edit-order-cabides').value = p.cabides || 0;
-            document.getElementById('edit-order-modal').style.display = 'flex';
-        }
-
-        function closeEditModal() { document.getElementById('edit-order-modal').style.display = 'none'; }
-
-        async function saveEditOrder() {
-            const id = document.getElementById('edit-order-id').value;
-            const pOrig = db.pedidos.find(x => String(x.id) === String(id));
-            const nH = timeToDecimal(document.getElementById('edit-order-hours').value);
-            const nC = parseInt(document.getElementById('edit-order-cabides').value);
-            showLoader(true, "A atualizar...");
-            try { 
-                await runCommand('registrarPedido', { ...pOrig, totalhoras: nH, cabides: nC }); 
-                closeEditModal(); 
-                await loadAllData(); 
-            } catch(e) { alert(e.message); } finally { showLoader(false); }
         }
 
         window.onload = loadAllData;
