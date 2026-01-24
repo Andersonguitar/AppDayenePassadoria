@@ -18,7 +18,7 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(4px); }
         
         /* Estilização dos Logótipos */
-        .app-logo { height: 80px; width: auto; object-fit: contain; }
+        .app-logo { height: 100px; width: auto; object-fit: contain; }
         .receipt-logo { height: 120px; width: auto; max-width: 280px; object-fit: contain; margin: 0 auto; }
     </style>
 </head>
@@ -134,16 +134,11 @@
     </div>
 
     <div class="max-w-4xl mx-auto px-4 py-8">
-        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div class="flex items-center gap-4">
-                <img src="https://lh3.googleusercontent.com/u/0/d/1KhEmSLFx9gRrYGvXpNvkk0H_zPyQSbwj=w1000-iv1" 
-                     alt="Línea Passadoria Logo" 
-                     class="app-logo">
-                <div>
-                    <p class="text-slate-500 font-medium leading-tight">Gestão de Produção e Saldos</p>
-                    <div id="status-conexao" class="text-[10px] mt-1 font-bold uppercase tracking-widest text-amber-500 italic">A verificar ligação...</div>
-                </div>
-            </div>
+        <header class="flex flex-col items-center justify-center mb-10">
+            <img src="https://lh3.googleusercontent.com/u/0/d/1KhEmSLFx9gRrYGvXpNvkk0H_zPyQSbwj=w1000-iv1" 
+                 alt="Línea Passadoria Logo" 
+                 class="app-logo">
+            <!-- Texto de status removido conforme solicitação -->
         </header>
 
         <nav class="flex overflow-x-auto space-x-2 mb-8 border-b border-slate-200">
@@ -318,7 +313,6 @@
             if (!event || event.target === document.getElementById('receipt-modal')) document.getElementById('receipt-modal').style.display = 'none';
         }
 
-        // Funções de Gestão de Clientes (Pacote e Recarga)
         async function makePacote(cliId) {
             showConfirm("Tornar Pacote", "Deseja mudar este cliente para o regime de Pacote (10h iniciais)?", async () => {
                 showLoader(true);
@@ -348,7 +342,6 @@
             } catch(e) { alert(e.message); } finally { showLoader(false); }
         }
 
-        // Funções de Histórico (Editar e Excluir)
         function openEditOrder(id) {
             const p = db.pedidos.find(x => String(x.id) === String(id));
             document.getElementById('edit-order-id').value = id;
@@ -401,11 +394,9 @@
                 if (data) {
                     db = data;
                     renderAll();
-                    document.getElementById('status-conexao').innerText = "Conectado";
-                    document.getElementById('status-conexao').className = "text-[10px] mt-1 font-bold text-emerald-50";
                 }
             } catch (e) {
-                document.getElementById('status-conexao').innerText = "Erro de Ligação";
+                console.error("Erro de conexão", e);
             } finally { showLoader(false); }
         }
 
@@ -414,7 +405,7 @@
             document.getElementById('order-client').innerHTML = '<option value="">Cliente...</option>' + db.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             document.getElementById('order-item-select').innerHTML = '<option value="">Peça...</option>' + db.pecas.map(p => `<option value="${p.id}">${p.nome || p.nomedapeça}</option>`).join('');
 
-            // Tabela Clientes - Restaurando Ações
+            // Tabela Clientes
             document.getElementById('table-clientes-body').innerHTML = db.clientes.map(c => `
                 <tr>
                     <td class="p-4 font-bold text-slate-700">${c.nome}</td>
@@ -433,7 +424,7 @@
             // Peças
             document.getElementById('pecas-grid').innerHTML = db.pecas.map(p => `<div class="bg-white p-3 rounded-xl border border-slate-100 text-center text-sm font-bold text-slate-700 shadow-sm">${p.nome || p.nomedapeça}</div>`).join('');
             
-            // Histórico - Restaurando Cards, Cores e Botões
+            // Histórico
             const filter = document.getElementById('filter-history').value.toLowerCase();
             const statusFilter = document.getElementById('filter-status').value;
             const filtered = db.pedidos.filter(p => p.clientenome.toLowerCase().includes(filter) && (statusFilter === 'todos' || p.status === statusFilter));
