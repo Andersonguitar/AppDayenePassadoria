@@ -17,7 +17,6 @@
         input:focus, select:focus { border-color: #4f46e5; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(4px); }
         
-        /* Estilização dos Logótipos */
         .app-logo { height: 100px; width: auto; object-fit: contain; }
         .receipt-logo { height: 120px; width: auto; max-width: 280px; object-fit: contain; margin: 0 auto; }
     </style>
@@ -138,7 +137,6 @@
             <img src="https://lh3.googleusercontent.com/u/0/d/1KhEmSLFx9gRrYGvXpNvkk0H_zPyQSbwj=w1000-iv1" 
                  alt="Línea Passadoria Logo" 
                  class="app-logo">
-            <!-- Texto de status removido conforme solicitação -->
         </header>
 
         <nav class="flex overflow-x-auto space-x-2 mb-8 border-b border-slate-200">
@@ -334,12 +332,26 @@
         async function confirmRecharge() {
             const id = document.getElementById('recharge-cli-id').value;
             const amount = parseFloat(document.getElementById('recharge-amount').value);
-            showLoader(true);
+            if (isNaN(amount) || amount <= 0) { alert("Informe um valor válido."); return; }
+            
+            showLoader(true, "Processando recarga...");
             try {
-                await runCommand('recarregarSaldo', id, amount);
+                // Como 'recarregarSaldo' deu erro de ação não encontrada no backend, 
+                // vamos usar a função 'salvarCliente' que já funciona, enviando o saldo atualizado.
+                const cli = db.clientes.find(x => String(x.id) === String(id));
+                const updatedCli = {...cli};
+                updatedCli.saldohoras = (parseFloat(updatedCli.saldohoras) || 0) + amount;
+                
+                await runCommand('salvarCliente', updatedCli);
+                
                 document.getElementById('recharge-modal').style.display = 'none';
                 await loadAllData();
-            } catch(e) { alert(e.message); } finally { showLoader(false); }
+            } catch(e) { 
+                console.error(e);
+                alert("Erro ao recarregar: " + e.message); 
+            } finally { 
+                showLoader(false); 
+            }
         }
 
         function openEditOrder(id) {
@@ -401,11 +413,9 @@
         }
 
         function renderAll() {
-            // Dropdowns
             document.getElementById('order-client').innerHTML = '<option value="">Cliente...</option>' + db.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             document.getElementById('order-item-select').innerHTML = '<option value="">Peça...</option>' + db.pecas.map(p => `<option value="${p.id}">${p.nome || p.nomedapeça}</option>`).join('');
 
-            // Tabela Clientes
             document.getElementById('table-clientes-body').innerHTML = db.clientes.map(c => `
                 <tr>
                     <td class="p-4 font-bold text-slate-700">${c.nome}</td>
@@ -421,10 +431,8 @@
                     </td>
                 </tr>`).join('');
 
-            // Peças
             document.getElementById('pecas-grid').innerHTML = db.pecas.map(p => `<div class="bg-white p-3 rounded-xl border border-slate-100 text-center text-sm font-bold text-slate-700 shadow-sm">${p.nome || p.nomedapeça}</div>`).join('');
             
-            // Histórico
             const filter = document.getElementById('filter-history').value.toLowerCase();
             const statusFilter = document.getElementById('filter-status').value;
             const filtered = db.pedidos.filter(p => p.clientenome.toLowerCase().includes(filter) && (statusFilter === 'todos' || p.status === statusFilter));
